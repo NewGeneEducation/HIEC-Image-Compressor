@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Advanced Photo Compressor & HEIC Converter - NewGen eEducation</title>
+
+<!-- HEIC/HEIF support. Internet is required only for HEIC/HEIF conversion. -->
+<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+
+<style>
+:root{
+  --sidebar:#1e1335;--primary:#7c3aed;--pink:#db2777;
+  --header:linear-gradient(135deg,#2e1065,#7c3aed);
+  --primary-gradient:linear-gradient(135deg,#7c3aed,#db2777);
+  --bg:#f1f5f9;--surface:#fff;--text:#1e293b;--muted:#64748b;
+  --border:#dbe3ee;--ok:#166534;--okbg:#dcfce7;--err:#991b1b;--errbg:#fee2e2;
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Segoe UI,Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text)}
+.main-wrapper{min-height:100vh;display:flex;flex-direction:column}
+header{background:var(--header);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 4px 14px #0002}
+.header-title h1{margin:0;font-size:18px}.header-title p{margin:3px 0 0;font-size:11px;opacity:.86}
+.header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.live-clock,.user-profile{background:#ffffff1c;padding:6px 10px;border-radius:22px;font-size:11px}
+.user-profile{display:flex;align-items:center;gap:7px}.avatar{width:25px;height:25px;border-radius:50%;display:grid;place-items:center;background:#ddd;color:#2e1065;font-weight:700}
+.container{width:min(820px,94%);margin:18px auto;padding:20px;background:var(--surface);border-radius:20px;box-shadow:0 10px 30px #00000008}
+.tool-icon{width:48px;height:48px;margin:0 auto 10px;border-radius:14px;background:#f3e8ff;display:grid;place-items:center;font-size:23px}
+.badge{display:block;width:max-content;margin:auto;background:var(--primary-gradient);color:#fff;padding:4px 11px;border-radius:20px;font-size:10px;font-weight:800;text-transform:uppercase}
+h2{text-align:center;color:#2e1065;font-size:22px;margin:9px 0 5px}
+.description{text-align:center;color:var(--muted);font-size:13px;line-height:1.5;margin:0 auto 17px;max-width:680px}
+label{display:block;margin:13px 0 6px;font-size:12px;font-weight:700;color:#334155}
+input,select,button{font:inherit}
+input[type=file],input[type=number],select{width:100%;padding:11px 12px;border:1px solid var(--border);background:#f8fafc;color:var(--text);border-radius:10px;outline:0}
+input:focus,select:focus{border-color:var(--primary)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.card{border:1px solid var(--border);background:#fbfdff;border-radius:13px;padding:12px}
+.card-title{font-size:11px;font-weight:800;color:#475569;margin-bottom:7px;text-transform:uppercase}
+.target-row{display:grid;grid-template-columns:1fr 110px;gap:8px}
+.custom-row{display:grid;grid-template-columns:1fr 110px;gap:8px;margin-top:8px}
+.help{font-size:10px;color:var(--muted);margin-top:5px;line-height:1.35}
+.switch-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;font-weight:600}
+.switch{position:relative;width:43px;height:24px;flex:none}.switch input{display:none}
+.slider{position:absolute;inset:0;background:#cbd5e1;border-radius:20px;cursor:pointer;transition:.2s}
+.slider:before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px #0003}
+.switch input:checked+.slider{background:var(--primary)}.switch input:checked+.slider:before{transform:translateX(19px)}
+button{width:100%;border:0;border-radius:10px;padding:12px;margin-top:14px;background:var(--primary-gradient);color:#fff;font-weight:800;cursor:pointer;box-shadow:0 4px 15px #db277744}
+button:active{transform:scale(.985)}button:disabled{background:#94a3b8;box-shadow:none;cursor:not-allowed}
+.secondary{background:#eef2ff;color:#3730a3;box-shadow:none;margin-top:8px}
+#fileListContainer{display:none;margin-top:12px;max-height:330px;overflow:auto;border:1px solid var(--border);border-radius:12px;background:#f8fafc;padding:7px}
+.file-item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:7px;padding:8px;border-bottom:1px solid #edf2f7;font-size:11px}
+.file-item:last-child{border-bottom:0}.file-name{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.file-size{color:var(--muted);white-space:nowrap}
+.file-badge{font-size:9px;font-weight:800;padding:3px 7px;border-radius:12px;white-space:nowrap}
+.pending{background:#e2e8f0;color:#475569}.work{background:#fef3c7;color:#92400e}.done{background:#bbf7d0;color:#166534}.fail{background:#fecaca;color:#991b1b}
+.progress-box{display:none;margin-top:15px}.progress-track{height:9px;background:#e2e8f0;border-radius:20px;overflow:hidden}.progress-fill{width:0;height:100%;background:var(--primary-gradient);transition:.2s}.progress-text{text-align:center;margin-top:6px;font-size:11px;color:var(--muted)}
+#status{margin-top:12px;padding:11px;border-radius:10px;text-align:center;background:#f1f5f9;font-size:12px;line-height:1.45}.success{background:var(--okbg)!important;color:var(--ok)}.error{background:var(--errbg)!important;color:var(--err)}
+.note{margin-top:12px;padding:10px 12px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:10px;font-size:10px;line-height:1.45}
+footer{text-align:center;margin-top:auto;padding:18px;color:var(--muted);font-size:11px;background:#fff;border-top:1px solid var(--border)}
+footer strong{color:#2e1065}
+@media(max-width:600px){
+ header{padding:11px 13px}.header-right{width:100%;justify-content:space-between}
+ .container{width:95%;padding:15px;margin:11px auto}.grid{grid-template-columns:1fr}
+ h2{font-size:20px}.file-item{grid-template-columns:minmax(0,1fr) auto}.file-badge{grid-column:2}.file-size{font-size:10px}
+}
+</style>
+</head>
+<body>
+<div class="main-wrapper">
+<header>
+  <div class="header-title"><h1>NewGen eEducation</h1><p>Smart Digital Utility Tools</p></div>
+  <div class="header-right">
+    <div class="live-clock">🕒 <span id="clockText">Loading...</span></div>
+    <div class="user-profile"><div class="avatar">GS</div><span>Guduru Sathish Kumar</span></div>
+  </div>
+</header>
+
+<main class="container">
+  <div class="tool-icon">🖼️</div>
+  <span class="badge">Advanced Batch Utility</span>
+  <h2>Photo Compressor & HEIC Converter</h2>
+  <p class="description">
+    Compress JPG, JPEG, PNG, WEBP, HEIC and HEIF to a selected size.
+    The compressor searches for the <strong>highest practical JPEG/WebP quality</strong> that fits the target.
+  </p>
+
+  <label for="imageInput">Select Photos (Single or Multiple)</label>
+  <input id="imageInput" type="file" accept="image/*,.heic,.HEIC,.heif,.HEIF" multiple>
+
+  <div id="fileListContainer"></div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">Target size</div>
+      <div class="target-row">
+        <select id="targetPreset">
+          <option value="20480">20 KB</option>
+          <option value="51200">50 KB</option>
+          <option value="102400" selected>100 KB</option>
+          <option value="204800">200 KB</option>
+          <option value="512000">500 KB</option>
+          <option value="1048576">1 MB</option>
+          <option value="2097152">2 MB</option>
+          <option value="5242880">5 MB</option>
+          <option value="10485760">10 MB</option>
+          <option value="custom">Custom</option>
+        </select>
+        <select id="targetUnit">
+          <option value="KB" selected>KB</option><option value="MB">MB</option>
+        </select>
+      </div>
+      <div class="custom-row" id="customBox" style="display:none">
+        <input id="customValue" type="number" min="20" step="1" value="100" placeholder="20 or more">
+        <span></span>
+      </div>
+      <div class="help">Allowed custom target: 20 KB to 50 MB. Final output is kept at or below the target when technically possible.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Output settings</div>
+      <select id="format">
+        <option value="image/jpeg" selected>JPG / JPEG — best compatibility</option>
+        <option value="image/webp">WebP — usually smaller at similar visual quality</option>
+      </select>
+      <label style="margin-top:9px">Maximum dimension</label>
+      <select id="maxDimension">
+        <option value="0">Auto — preserve resolution when possible</option>
+        <option value="5000">5000 px</option>
+        <option value="4000">4000 px</option>
+        <option value="3000">3000 px</option>
+        <option value="2500" selected>2500 px — balanced</option>
+        <option value="2000">2000 px</option>
+        <option value="1500">1500 px</option>
+        <option value="1200">1200 px</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top:10px">
+    <div class="card">
+      <div class="card-title">Compression behaviour</div>
+      <div class="switch-row">
+        <span>Keep original if already within target</span>
+        <label class="switch"><input id="keepOriginal" type="checkbox" checked><span class="slider"></span></label>
+      </div>
+      <div class="help">Prevents unnecessary re-encoding of small JPG/JPEG files. HEIC/PNG may still be converted.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Quality priority</div>
+      <select id="qualityMode">
+        <option value="quality" selected>Maximum visual quality</option>
+        <option value="balanced">Balanced size + quality</option>
+        <option value="size">Strong size priority</option>
+      </select>
+      <div class="help">The app tries quality first, then reduces dimensions only when needed to reach very small targets.</div>
+    </div>
+  </div>
+
+  <button id="compressBtn">Compress & Download All Photos</button>
+  <button id="clearBtn" class="secondary">Clear Selection</button>
+
+  <div class="progress-box" id="progressBox">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-text" id="progressText">Ready</div>
+  </div>
+
+  <div id="status">Select one or more photos to begin.</div>
+
+  <div class="note">
+    <strong>Important:</strong> A hard file-size limit and “zero quality loss” cannot always both be guaranteed.
+    For example, a high-resolution photo cannot physically fit into 20 KB without either JPEG/WebP compression,
+    lower resolution, or both. This version therefore preserves the highest practical quality for the requested size.
+  </div>
+</main>
+
+<footer>© 2026 <strong>NewGen eEducation</strong><br><br>Developed by <strong>Guduru Sathish Kumar</strong></footer>
+</div>
+
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+let selectedFiles = [];
+
+function updateClock(){
+  const now = new Date();
+  $("clockText").textContent = now.toLocaleString("en-IN",{
+    day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:true
+  });
+}
+setInterval(updateClock,1000); updateClock();
+
+function formatSize(bytes){
+  if(bytes < 1024) return bytes+" B";
+  if(bytes < 1024*1024) return (bytes/1024).toFixed(bytes<10240?1:0)+" KB";
+  return (bytes/1048576).toFixed(2)+" MB";
+}
+function isHeic(file){
+  const n=file.name.toLowerCase();
+  return n.endsWith(".heic")||n.endsWith(".heif")||file.type==="image/heic"||file.type==="image/heif";
+}
+function isJpeg(file){
+  return file.type==="image/jpeg" || /\.(jpe?g)$/i.test(file.name);
+}
+
+$("targetPreset").addEventListener("change",()=>{
+  $("customBox").style.display=$("targetPreset").value==="custom"?"grid":"none";
+});
+$("imageInput").addEventListener("change",handleFilesSelected);
+$("clearBtn").addEventListener("click",()=>{
+  selectedFiles=[];$("imageInput").value="";$("fileListContainer").innerHTML="";$("fileListContainer").style.display="none";
+  $("status").className="";$("status").textContent="Select one or more photos to begin.";
+  $("progressBox").style.display="none";
+});
+
+function handleFilesSelected(){
+  selectedFiles=Array.from($("imageInput").files||[]);
+  const box=$("fileListContainer");
+  if(!selectedFiles.length){box.style.display="none";return;}
+  box.innerHTML="";
+  box.style.display="block";
+  selectedFiles.forEach((file,i)=>{
+    const row=document.createElement("div");
+    row.className="file-item"; row.id="row-"+i;
+    row.innerHTML=
+      `<span class="file-name" title="${escapeHtml(file.name)}">${i+1}. ${escapeHtml(file.name)}</span>
+       <span class="file-size" id="size-${i}">${formatSize(file.size)}</span>
+       <span class="file-badge pending" id="badge-${i}">${isHeic(file)?"HEIC":"Ready"}</span>`;
+    box.appendChild(row);
+  });
+  $("status").className="";
+  $("status").textContent=`${selectedFiles.length} photo(s) queued.`;
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function getTargetBytes(){
+  if($("targetPreset").value!=="custom") return Number($("targetPreset").value);
+  const n=Number($("customValue").value);
+  if(!Number.isFinite(n)||n<20) throw new Error("Custom target must be at least 20 KB.");
+  const bytes=n*($("targetUnit").value==="MB"?1048576:1024);
+  if(bytes>50*1048576) throw new Error("Custom target cannot exceed 50 MB.");
+  return Math.floor(bytes);
+}
+function outputType(){return $("format").value}
+function extForType(){return outputType()==="image/webp"?"webp":"jpg"}
+
+async function prepareImageSource(file,onUpdate){
+  if(isHeic(file)){
+    if(typeof heic2any==="undefined") throw new Error("HEIC converter could not be loaded. Internet is required for HEIC/HEIF.");
+    onUpdate?.("Converting HEIC/HEIF…");
+    const converted=await heic2any({blob:file,toType:"image/jpeg",quality:1});
+    return Array.isArray(converted)?converted[0]:converted;
+  }
+  return file;
+}
+function loadImage(blob){
+  return new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(blob), img=new Image();
+    img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};
+    img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error("Image decoding failed."))};
+    img.src=url;
+  });
+}
+function canvasBlob(canvas,type,quality){
+  return new Promise((resolve,reject)=>{
+    canvas.toBlob(b=>b?resolve(b):reject(new Error("Browser could not encode image.")),type,quality);
+  });
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+/*
+  Advanced size fitting:
+  1. Try the current resolution at high quality.
+  2. Binary-search quality instead of dropping quality in large steps.
+  3. If even the minimum practical quality is too large, reduce resolution gradually.
+  4. After finding a result, try a small quality/dimension refinement around it.
+*/
+async function compressSingleImage(file,target,onUpdate){
+  const source=await prepareImageSource(file,onUpdate);
+
+  if($("keepOriginal").checked && isJpeg(file) && file.size<=target){
+    onUpdate?.("Already within target — keeping original");
+    return {blob:file,type:file.type||"image/jpeg",kept:true};
+  }
+
+  onUpdate?.("Decoding image…");
+  const img=await loadImage(source);
+  let naturalW=img.naturalWidth, naturalH=img.naturalHeight;
+  if(!naturalW||!naturalH) throw new Error("Invalid image dimensions.");
+
+  const maxDim=Number($("maxDimension").value);
+  if(maxDim>0 && Math.max(naturalW,naturalH)>maxDim){
+    const r=maxDim/Math.max(naturalW,naturalH);
+    naturalW=Math.max(1,Math.round(naturalW*r));
+    naturalH=Math.max(1,Math.round(naturalH*r));
+  }
+
+  const type=outputType();
+  const mode=$("qualityMode").value;
+  const minQ=mode==="quality"?.32:mode==="balanced"?.25:.18;
+  const startQ=mode==="quality"?.97:mode==="balanced"?.92:.88;
+
+  let width=naturalW,height=naturalH;
+  let best=null;
+
+  async function render(w,h,q){
+    const canvas=document.createElement("canvas");
+    canvas.width=w;canvas.height=h;
+    const ctx=canvas.getContext("2d",{alpha:type==="image/webp"});
+    if(!ctx) throw new Error("Canvas is unavailable.");
+    ctx.imageSmoothingEnabled=true;
+    ctx.imageSmoothingQuality="high";
+
+    // JPEG has no alpha; use white background for transparent PNGs.
+    if(type==="image/jpeg"){
+      ctx.fillStyle="#ffffff";
+      ctx.fillRect(0,0,w,h);
+    }
+    ctx.drawImage(img,0,0,w,h);
+    const blob=await canvasBlob(canvas,type,q);
+    canvas.width=1;canvas.height=1;
+    return blob;
+  }
+
+  for(let dimensionPass=0;dimensionPass<14;dimensionPass++){
+    onUpdate?.(`Finding best quality at ${width}×${height}…`);
+
+    let low=minQ,high=startQ,fit=null,under=null;
+
+    // First test the high-quality end.
+    const highBlob=await render(width,height,high);
+    if(highBlob.size<=target){
+      fit=highBlob;
+    }else{
+      // Binary search the highest quality that fits the target.
+      for(let k=0;k<9;k++){
+        const q=(low+high)/2;
+        const b=await render(width,height,q);
+        if(b.size<=target){fit=b;low=q;under=b}
+        else high=q;
+        if(high-low<0.008) break;
+        await sleep(0);
+      }
+      // Test the lower boundary as a safety fallback.
+      if(!fit){
+        const b=await render(width,height,minQ);
+        if(b.size<=target) fit=b;
+      }
+    }
+
+    if(fit){
+      best=fit;
+      // Try a few tiny refinements around the found quality/resolution.
+      if(best.size<=target){
+        break;
+      }
+    }
+
+    // If quality alone cannot reach the target, reduce dimensions.
+    const factor = best ? 0.90 : 0.82;
+    const nextW=Math.max(160,Math.floor(width*factor));
+    const nextH=Math.max(160,Math.floor(height*factor));
+    if(nextW===width && nextH===height) break;
+    width=nextW;height=nextH;
+    if(width<=160||height<=160){
+      const b=await render(width,height,minQ);
+      if(b.size<=(target*1.02)) best=b;
+      if(b.size<=target) break;
+    }
+  }
+
+  // Final guaranteed-under-target pass: if a candidate is just over the target,
+  // reduce its dimensions until it fits. This avoids returning an oversized file.
+  if(!best || best.size>target){
+    let w=width,h=height;
+    for(let i=0;i<10;i++){
+      w=Math.max(120,Math.floor(w*.84));h=Math.max(120,Math.floor(h*.84));
+      const b=await render(w,h,minQ);
+      best=b;
+      if(b.size<=target) break;
+    }
+  }
+
+  if(!best) throw new Error("Compression failed.");
+  if(best.size>target){
+    throw new Error(`Could not reach ${formatSize(target)} without extreme quality loss. Try a larger target.`);
+  }
+  onUpdate?.(`Done — ${formatSize(best.size)} ≤ ${formatSize(target)}`);
+  return {blob:best,type,kept:false};
+}
+
+function setRow(i,state,text){
+  const b=$("badge-"+i);
+  if(!b)return;
+  b.className="file-badge "+state;b.textContent=text;
+}
+function downloadBlob(blob,name){
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),3000);
+}
+
+async function compressBatchImages(){
+  if(!selectedFiles.length){
+    $("status").className="error";$("status").textContent="Please select at least one photo.";return;
+  }
+
+  let target;
+  try{target=getTargetBytes()}catch(e){
+    $("status").className="error";$("status").textContent=e.message;return;
+  }
+
+  const btn=$("compressBtn"),status=$("status"),progress=$("progressBox"),fill=$("progressFill"),pt=$("progressText");
+  btn.disabled=true;progress.style.display="block";fill.style.width="0%";
+  let success=0,fail=0,total=selectedFiles.length;
+
+  for(let i=0;i<total;i++){
+    const file=selectedFiles[i];
+    setRow(i,"work",isHeic(file)?"Converting…":"Working…");
+    fill.style.width=Math.round(i/total*100)+"%";
+    pt.textContent=`[${i+1}/${total}] ${file.name}`;
+
+    if(file.size>100*1024*1024){
+      setRow(i,"fail",">100 MB");fail++;continue;
+    }
+
+    try{
+      const result=await compressSingleImage(file,target,msg=>{
+        pt.textContent=`[${i+1}/${total}] ${msg}`;
+      });
+
+      const base=file.name.replace(/\.[^.]+$/,"")||"photo";
+      const finalName=result.kept ? file.name : `${base}-compressed.${extForType()}`;
+      downloadBlob(result.blob,finalName);
+
+      $("size-"+i).innerHTML=`${formatSize(file.size)} → <strong>${formatSize(result.blob.size)}</strong>`;
+      if(result.blob.size<=target){
+        setRow(i,"done",result.kept?"Kept":"Done");success++;
+      }else{
+        setRow(i,"fail","Over target");fail++;
+      }
+    }catch(err){
+      console.error(err);
+      setRow(i,"fail","Error");
+      $("size-"+i).textContent=err.message||"Failed";
+      fail++;
+    }
+    fill.style.width=Math.round((i+1)/total*100)+"%";
+    await sleep(80);
+  }
+
+  pt.textContent="Batch completed";
+  btn.disabled=false;
+  status.className=fail?"error":"success";
+  status.innerHTML=fail
+    ? `Completed: <strong>${success}</strong> succeeded, <strong>${fail}</strong> failed.`
+    : `✓ All <strong>${success}</strong> photo(s) compressed successfully within the selected target.`;
+}
+
+$("compressBtn").addEventListener("click",compressBatchImages);
+</script>
+</body>
+</html>
